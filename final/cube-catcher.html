@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cube Catcher Game</title>
+
+<style>
+    body{
+        margin:0;
+        overflow:hidden;
+        background:#111;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        height:100vh;
+        font-family:Arial, sans-serif;
+    }
+
+    canvas{
+        background:#222;
+        border:3px solid white;
+    }
+
+    #score{
+        position:absolute;
+        top:20px;
+        color:white;
+        font-size:24px;
+    }
+</style>
+</head>
+
+<body>
+
+<div id="score">Score: 0</div>
+<canvas id="gameCanvas" width="500" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const scoreText = document.getElementById("score");
+
+let score = 0;
+
+/* Player */
+const player = {
+    x: 200,
+    y: 550,
+    width: 100,
+    height: 20,
+    speed: 7
+};
+
+/* Falling Cube */
+const cube = {
+    x: Math.random() * 450,
+    y: 0,
+    size: 40,
+    speed: 4
+};
+
+/* Keyboard Controls */
+const keys = {};
+
+document.addEventListener("keydown", (e)=>{
+    keys[e.key] = true;
+});
+
+document.addEventListener("keyup", (e)=>{
+    keys[e.key] = false;
+});
+
+/* Draw Player */
+function drawPlayer(){
+    ctx.fillStyle = "cyan";
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+/* Draw Cube */
+function drawCube(){
+    ctx.fillStyle = "orange";
+    ctx.fillRect(cube.x, cube.y, cube.size, cube.size);
+}
+
+/* Move Player */
+function movePlayer(){
+
+    if(keys["ArrowLeft"] && player.x > 0){
+        player.x -= player.speed;
+    }
+
+    if(keys["ArrowRight"] && player.x < canvas.width - player.width){
+        player.x += player.speed;
+    }
+}
+
+/* Move Cube */
+function moveCube(){
+    cube.y += cube.speed;
+
+    /* Reset cube if missed */
+    if(cube.y > canvas.height){
+        cube.y = 0;
+        cube.x = Math.random() * (canvas.width - cube.size);
+    }
+}
+
+/* Collision Detection */
+function checkCollision(){
+
+    if(
+        cube.x < player.x + player.width &&
+        cube.x + cube.size > player.x &&
+        cube.y < player.y + player.height &&
+        cube.y + cube.size > player.y
+    ){
+        score++;
+        scoreText.innerText = "Score: " + score;
+
+        cube.y = 0;
+        cube.x = Math.random() * (canvas.width - cube.size);
+
+        /* Increase difficulty */
+        cube.speed += 0.2;
+    }
+}
+
+/* Game Loop */
+function gameLoop(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    drawPlayer();
+    drawCube();
+
+    movePlayer();
+    moveCube();
+
+    checkCollision();
+
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>
