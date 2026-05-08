@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Move Selected Object Only</title>
+
+    <style>
+        body{
+            background:#0f172a;
+            text-align:center;
+            font-family:Arial;
+            color:white;
+        }
+
+        h2{
+            color:#00e5ff;
+        }
+
+        canvas{
+            border:4px solid #00e5ff;
+            background:#111827;
+            border-radius:20px;
+            box-shadow:0 0 25px #00e5ff;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Click an object → Move with Keyboard</h2>
+
+<canvas id="gameCanvas" width="700" height="450"></canvas>
+
+<script>
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const objects = [
+    {type:"circle", x:120, y:120, r:45, color:"#ff4d6d"},
+    {type:"hexagon", x:540, y:150, size:50, color:"#00b4ff"},
+    {type:"diamond", x:350, y:120, size:60, color:"#ff9500"},
+    {type:"square", x:320, y:250, size:55, color:"#ffe600"}
+];
+
+let selected = null;
+const speed = 5;
+
+// KEYBOARD INPUT
+const keys = {};
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
+
+// SELECT OBJECT ON CLICK
+canvas.addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    selected = null;
+
+    for(let obj of objects){
+
+        if(obj.type === "circle"){
+            const dx = mx - obj.x;
+            const dy = my - obj.y;
+            if(Math.sqrt(dx*dx + dy*dy) < obj.r){
+                selected = obj;
+            }
+        }
+
+        if(obj.type === "square"){
+            if(mx > obj.x && mx < obj.x + obj.size &&
+               my > obj.y && my < obj.y + obj.size){
+                selected = obj;
+            }
+        }
+
+        if(obj.type === "diamond"){
+            if(mx > obj.x - obj.size && mx < obj.x + obj.size &&
+               my > obj.y - obj.size && my < obj.y + obj.size){
+                selected = obj;
+            }
+        }
+
+        if(obj.type === "hexagon"){
+            if(mx > obj.x - obj.size && mx < obj.x + obj.size &&
+               my > obj.y - obj.size && my < obj.y + obj.size){
+                selected = obj;
+            }
+        }
+    }
+});
+
+// MOVE ONLY SELECTED OBJECT
+function update(){
+
+    if(!selected) return;
+
+    if(keys["ArrowUp"] || keys["w"]) selected.y -= speed;
+    if(keys["ArrowDown"] || keys["s"]) selected.y += speed;
+    if(keys["ArrowLeft"] || keys["a"]) selected.x -= speed;
+    if(keys["ArrowRight"] || keys["d"]) selected.x += speed;
+}
+
+// DRAW SHAPES
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    objects.forEach(obj => {
+
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = obj.color;
+
+        // highlight selected
+        if(obj === selected){
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 4;
+        } else {
+            ctx.strokeStyle = "transparent";
+        }
+
+        if(obj.type === "circle"){
+            ctx.beginPath();
+            ctx.arc(obj.x, obj.y, obj.r, 0, Math.PI*2);
+            ctx.fillStyle = obj.color;
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        if(obj.type === "square"){
+            ctx.beginPath();
+            ctx.fillStyle = obj.color;
+            ctx.roundRect(obj.x, obj.y, obj.size, obj.size, 10);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        if(obj.type === "diamond"){
+            ctx.beginPath();
+            ctx.moveTo(obj.x, obj.y - obj.size);
+            ctx.lineTo(obj.x + obj.size, obj.y);
+            ctx.lineTo(obj.x, obj.y + obj.size);
+            ctx.lineTo(obj.x - obj.size, obj.y);
+            ctx.closePath();
+            ctx.fillStyle = obj.color;
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        if(obj.type === "hexagon"){
+            const s = obj.size;
+            ctx.beginPath();
+            ctx.moveTo(obj.x, obj.y - s);
+            ctx.lineTo(obj.x + s, obj.y - s/2);
+            ctx.lineTo(obj.x + s, obj.y + s/2);
+            ctx.lineTo(obj.x, obj.y + s);
+            ctx.lineTo(obj.x - s, obj.y + s/2);
+            ctx.lineTo(obj.x - s, obj.y - s/2);
+            ctx.closePath();
+            ctx.fillStyle = obj.color;
+            ctx.fill();
+            ctx.stroke();
+        }
+    });
+}
+
+// LOOP
+function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+</script>
+
+</body>
+</html>
